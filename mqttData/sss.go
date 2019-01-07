@@ -1,4 +1,4 @@
-package subpub
+package mqttData
 
 import (
 	"time"
@@ -19,6 +19,10 @@ type User struct {
 	pubs    map[Topic]*Publisher
 	ip      IP
 	service *Service
+}
+
+func (u *User) GetName() string {
+	return u.name
 }
 
 func NewUser(name string, service *Service) *User {
@@ -60,7 +64,7 @@ type Subscriber struct {
 	args     []interface{}
 }
 
-func NewSubscriber(topic Topic, callback func(data ...interface{}), args [] interface{}) *Subscriber {
+func NewSubscriber(topic Topic, callback func(data ...interface{}), args []interface{}) *Subscriber {
 	return &Subscriber{topic: topic, callback: callback, args: args}
 }
 
@@ -76,16 +80,16 @@ func NewService() *Service {
 	s.user = make(map[IP]*User)
 	return s
 }
-
+func (s *Service) getMsg() Msg {
+	return <-s.msgChan
+}
 func (s *Service) running() {
 	msg := s.getMsg()
 	//fmt.Println(msg)
 	s.broadcastMsg(msg)
 	s.running()
 }
-func (s *Service) getMsg() Msg {
-	return <-s.msgChan
-}
+
 func (s *Service) putMsg(msg Msg) {
 	s.msgChan <- msg
 }
