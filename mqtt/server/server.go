@@ -9,10 +9,14 @@ import (
 	"log"
 	"net"
 	"os"
+	"runtime/debug"
 	"time"
 )
 
+
+
 func Run() {
+	log.Println("Start")
 	log.Println("start listening")
 	listen, err := net.Listen("tcp", ":9999")
 
@@ -64,14 +68,24 @@ func HandleConn(conn net.Conn) {
 
 func WaitData(msgChan chan []byte, Consume Packet.Consume, quitChan chan bool) {
 	buff := bytes.NewBuffer([]byte{})
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println("Error,PANIC,==================,", err, buff.Bytes())
+			debug.PrintStack()
+			WaitData(msgChan, Consume, quitChan)
+		}
+	}()
+
 	for {
 		select {
 		case <-quitChan:
 			log.Println("quit WaitData,")
 			return
 		case b := <-msgChan:
+
 			buff.Write(b)
-			Packet.Scanner(buff, Consume, mqttData.MQTTHeader)
+			Packet.Scanner(buff, Consume, mqttData.MQTTDataStruct) //TODO: 大量数据发来的时候，会触发panic,json unmarshel错误
 			continue
 		}
 	}

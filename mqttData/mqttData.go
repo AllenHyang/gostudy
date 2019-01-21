@@ -1,14 +1,22 @@
 package mqttData
 
+import "hybot/Packet"
+
 type MqttData struct {
 	serialize Serialize
 	Data      map[string]string
 }
 
+//MQTT编码
+//HYMQTT LEN(4字节,len(data)) data
 var MQTTHeader = []byte("HYMQTT")
+var MQTTlengtgBytes = 4
+
+var MQTTDataStruct = Packet.DataStruct{Header: MQTTHeader, BytesOfLength: MQTTlengtgBytes}
 
 func NewMqttData() *MqttData {
 	m := new(MqttData)
+	//m.dataStruct = Packet.DataStruct{Header: MQTTHeader, BytesOfLength: MQTTlengtgBytes}
 	m.serialize = new(JsonSerialize)
 	m.Data = make(map[string]string)
 	return m
